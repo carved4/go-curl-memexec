@@ -73,8 +73,9 @@ This tool is designed for legitimate security research, testing, and educational
 - Go 1.16 or later
 
 ## Notes
+- THIS ONLY WORKS FOR PAYLOADS LESS THAN OR EQUAL TO (leaning towards less than) THE TARGET BINARY SIZE (go-http-memexec is 5.626mb)
 - I have only tested this on Windows 10
-- I have only tested with my own statically linked go binary payloads, and the old leaked lockbit3 builder (curl ran + downloaded in memory, and files haflway crypted, but microsoft defender picked it up, as it's 70/70 on VT lol)
+- I have only tested on statically linked Go and Rust binaries
 
 ## License
 
