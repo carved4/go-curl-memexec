@@ -4,7 +4,7 @@ A lightweight, memory-safe Windows PE file execution tool that downloads and exe
 
 ## Features
 
-- **Zero Disk I/O**: Downloads executables directly to memory using curl and never writes them to disk
+- **Zero Disk I/O**: Downloads executables directly to memory using go net/http and never writes them to disk
 - **Process Self-Hollowing**: Replaces the current process with the downloaded payload
 - **Memory-Safe Execution**: Implements proper memory protection and relocation
 - **Simple API**: Single command to download and execute payloads
