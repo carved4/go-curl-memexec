@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "=== go curl memexec builder ==="
+echo "=== go http memexec builder ==="
 
 # Make sure the script is executable
 chmod +x build.sh
@@ -18,12 +18,12 @@ fi
 # Now build the Go application
 echo "Building Go application..."
 go mod tidy
-go build -ldflags="-s -w" -o go-curl-memexec.exe
+go build -ldflags="-s -w" -trimpath -o go-http-memexec.exe
 if [ $? -ne 0 ]; then
     echo "Failed to build Go application."
     exit 1
 fi
 
 echo "Build completed successfully!"
-echo "Output binary: go-curl-memexec.exe"
+echo "Output binary: go-http-memexec.exe"
 

