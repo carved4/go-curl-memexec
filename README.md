@@ -79,7 +79,7 @@ This tool is designed for legitimate security research, testing, and educational
 
 ## License
 
-[MIT License](LICENSE)
+[![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD--3--Clause-blue.svg)](LICENSE)
 
 ## Disclaimer
 
